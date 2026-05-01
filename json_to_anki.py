@@ -18,6 +18,7 @@ HTML habilitado). Cada tarjeta tiene:
   - Reverso: igual, pero la opción correcta marcada con clase CSS "correct"
 """
 
+import argparse
 import csv
 import json
 import sys
@@ -56,13 +57,20 @@ def load_respuestas(path: Path) -> dict[int, str]:
 
 
 def main():
-    if len(sys.argv) < 3:
-        print(f'Uso: {sys.argv[0]} <preguntas.json> <respuestas.csv|respuestas.json> [salida.txt]')
-        sys.exit(1)
+    parser = argparse.ArgumentParser(
+        description='Genera flashcards Anki desde preguntas JSON y respuestas CSV/JSON.'
+    )
+    parser.add_argument('preguntas', type=Path, help='Archivo de preguntas (.json)')
+    parser.add_argument('respuestas', type=Path, help='Archivo de respuestas (.csv o .json)')
+    parser.add_argument('salida', nargs='?', type=Path, default=Path('flashcards_anki.txt'),
+                        help='Archivo de salida (por defecto: flashcards_anki.txt)')
+    parser.add_argument('--tag', metavar='ETIQUETA',
+                        help='Etiqueta Anki para todas las tarjetas')
+    args = parser.parse_args()
 
-    preguntas_path = Path(sys.argv[1])
-    respuestas_path = Path(sys.argv[2])
-    output_path = Path(sys.argv[3]) if len(sys.argv) > 3 else Path('flashcards_anki.txt')
+    preguntas_path = args.preguntas
+    respuestas_path = args.respuestas
+    output_path = args.salida
 
     preguntas: list[dict] = json.loads(preguntas_path.read_text(encoding='utf-8'))
     respuestas = load_respuestas(respuestas_path)
@@ -80,7 +88,10 @@ def main():
         back = build_question_html(p, correct=correct)
         lines.append(f'{front}\t{back}')
 
-    output_path.write_text('\n'.join(lines), encoding='utf-8')
+    content = '\n'.join(lines)
+    if args.tag:
+        content = f'#tags:{args.tag}\n' + content
+    output_path.write_text(content, encoding='utf-8')
 
     total = len(lines)
     print(f'{total} flashcards generadas en {output_path}')
