@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Genera un archivo de flashcards Anki a partir de preguntas JSON y respuestas CSV/JSON.
+"""Genera un archivo de flashcards Anki a partir de preguntas JSON y respuestas CSV.
 
 Formato de preguntas JSON (salida de preguntas_to_json.py):
   [{"numero": 1, "titulo": "...", "a": "...", "b": "...", "c": "...", "d": "..."}, ...]
@@ -9,8 +9,6 @@ Formato de respuestas CSV (salida de respuestas_to_csv.py):
   1,A
   2,D
   ...
-
-También acepta respuestas en JSON: {"1": "A", "2": "D", ...}
 
 El archivo de salida es un .txt importable en Anki (campos separados por tabulador,
 HTML habilitado). Cada tarjeta tiene:
@@ -44,24 +42,17 @@ def build_question_html(pregunta: dict, correct: str | None) -> str:
 
 
 def load_respuestas(path: Path) -> dict[int, str]:
-    if path.suffix.lower() == '.csv':
-        with path.open(encoding='utf-8', newline='') as f:
-            reader = csv.DictReader(f)
-            return {int(row['pregunta']): row['respuesta'] for row in reader}
-    data = json.loads(path.read_text(encoding='utf-8'))
-    if isinstance(data, dict):
-        return {int(k): v for k, v in data.items()}
-    if isinstance(data, list):
-        return {int(item['pregunta']): item['respuesta'] for item in data}
-    raise ValueError(f'Formato de respuestas no reconocido en {path}')
+    with path.open(encoding='utf-8', newline='') as f:
+        reader = csv.DictReader(f)
+        return {int(row['pregunta']): row['respuesta'] for row in reader}
 
 
 def main():
     parser = argparse.ArgumentParser(
-        description='Genera flashcards Anki desde preguntas JSON y respuestas CSV/JSON.'
+        description='Genera flashcards Anki desde preguntas JSON y respuestas CSV.'
     )
     parser.add_argument('preguntas', type=Path, help='Archivo de preguntas (.json)')
-    parser.add_argument('respuestas', type=Path, help='Archivo de respuestas (.csv o .json)')
+    parser.add_argument('respuestas', type=Path, help='Archivo de respuestas (.csv)')
     parser.add_argument('salida', nargs='?', type=Path, default=Path('flashcards_anki.txt'),
                         help='Archivo de salida (por defecto: flashcards_anki.txt)')
     parser.add_argument('--tag', metavar='ETIQUETA',
