@@ -1,11 +1,16 @@
 #!/usr/bin/env python3
-"""Genera un archivo de flashcards Anki a partir de preguntas y respuestas JSON.
+"""Genera un archivo de flashcards Anki a partir de preguntas JSON y respuestas CSV/JSON.
 
 Formato de preguntas JSON (salida de preguntas_to_json.py):
   [{"numero": 1, "titulo": "...", "a": "...", "b": "...", "c": "...", "d": "..."}, ...]
 
-Formato de respuestas JSON:
-  {"1": "A", "2": "D", ...}   (clave = número de pregunta, valor = letra A-D o ANULADA)
+Formato de respuestas CSV (salida de respuestas_to_csv.py):
+  pregunta,respuesta
+  1,A
+  2,D
+  ...
+
+También acepta respuestas en JSON: {"1": "A", "2": "D", ...}
 
 El archivo de salida es un .txt importable en Anki (campos separados por tabulador,
 HTML habilitado). Cada tarjeta tiene:
@@ -13,6 +18,7 @@ HTML habilitado). Cada tarjeta tiene:
   - Reverso: igual, pero la opción correcta marcada con clase CSS "correct"
 """
 
+import csv
 import json
 import sys
 from pathlib import Path
@@ -37,6 +43,10 @@ def build_question_html(pregunta: dict, correct: str | None) -> str:
 
 
 def load_respuestas(path: Path) -> dict[int, str]:
+    if path.suffix.lower() == '.csv':
+        with path.open(encoding='utf-8', newline='') as f:
+            reader = csv.DictReader(f)
+            return {int(row['pregunta']): row['respuesta'] for row in reader}
     data = json.loads(path.read_text(encoding='utf-8'))
     if isinstance(data, dict):
         return {int(k): v for k, v in data.items()}
@@ -47,7 +57,7 @@ def load_respuestas(path: Path) -> dict[int, str]:
 
 def main():
     if len(sys.argv) < 3:
-        print(f'Uso: {sys.argv[0]} <preguntas.json> <respuestas.json> [salida.txt]')
+        print(f'Uso: {sys.argv[0]} <preguntas.json> <respuestas.csv|respuestas.json> [salida.txt]')
         sys.exit(1)
 
     preguntas_path = Path(sys.argv[1])
