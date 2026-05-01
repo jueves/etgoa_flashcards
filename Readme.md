@@ -13,7 +13,7 @@ PDF original → (marker) → Markdown → preguntas_to_json.py → JSON
 
 ## Paso 0 — Conversión manual de PDF a Markdown
 
-Usa [Marker](https://github.com/VikParuchuri/marker) para convertir los PDF. El documento original agrupa todas las áreas, así que selecciona manualmente las páginas que correspondan al área que quieres estudiar.
+Usa [Marker](https://github.com/datalab-to/marker) para convertir los PDF. El documento original agrupa todas las áreas, así que selecciona manualmente las páginas que correspondan al área que quieres estudiar.
 
 Repite el proceso con el PDF de preguntas y con el de respuestas.
 
