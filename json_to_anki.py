@@ -23,7 +23,7 @@ OPTIONS = ['a', 'b', 'c', 'd']
 
 def build_question_html(pregunta: dict, correct: str | None) -> str:
     """Construye el HTML de una pregunta. Si correct es None, sin marcar."""
-    lines = [f'<p class="question_title">{pregunta["numero"]}. {pregunta["titulo"]}</p>']
+    lines = [f'<p class="question_title">{pregunta["titulo"]}</p>']
     lines.append('<ul>')
     for opt in OPTIONS:
         letter = opt.upper()
