@@ -8,11 +8,6 @@ from pathlib import Path
 
 
 def parse_preguntas(md_text: str) -> list[dict]:
-    # Excluir sección de reserva y lo que venga después
-    reserva_match = re.search(r'PREGUNTAS DE RESERVA', md_text, re.IGNORECASE)
-    if reserva_match:
-        md_text = md_text[:reserva_match.start()]
-
     preguntas = []
     current: dict | None = None
     current_option: str | None = None
@@ -31,20 +26,20 @@ def parse_preguntas(md_text: str) -> list[dict]:
     for raw_line in md_text.splitlines():
         line = raw_line.strip()
 
-        # Línea de título: número + punto + espacio, puede tener marcado markdown (##, **, -)
-        # Ejemplos: "**1. Texto**", "## 2. Texto", "- 3. Texto"
-        title_match = re.match(
-            r'^(?:[#\-*_>\s]*)(\d{1,3})\.\s+(.+?)(?:\*\*)?$',
-            line
-        )
+        # Saltar la linea "PREGUNTAS DE RESERVA"
+        if re.search(r'PREGUNTAS DE RESERVA', line, re.IGNORECASE):
+            continue
 
-        # Línea de opción: "- A) texto" o "- A) texto"
+        # Titulo en negrita: **N. Texto** (con cualquier prefijo de encabezado o guion)
+        title_match = re.match(r'^.*\*\*(\d{1,3})\.\s+(.+?)\*\*', line)
+
+        # Linea de opcion: "- A) texto"
         option_match = re.match(r'^-\s+([A-D])\)\s+(.*)', line)
 
         if title_match:
             save_question()
             num = int(title_match.group(1))
-            titulo = title_match.group(2).strip().strip('*').strip()
+            titulo = title_match.group(2).strip()
             current = {'numero': num, 'titulo': titulo, 'a': '', 'b': '', 'c': '', 'd': ''}
             current_option = None
             current_lines = []
@@ -55,7 +50,7 @@ def parse_preguntas(md_text: str) -> list[dict]:
             current_lines = [option_match.group(2).strip()]
 
         elif current and current_option and line:
-            # Continuación de la opción anterior (texto en múltiples líneas)
+            # Continuacion de la opcion anterior (texto en multiples lineas)
             current_lines.append(line)
 
     save_question()
